@@ -24,16 +24,16 @@ Página web para llevar el inventario de hilo de la bodega: bultos, conos, peso 
 2. Cambia `TU_CORREO@gmail.com` por tu correo de Google y pulsa **Publicar**.
 
 ### 4. Autorizar el dominio de GitHub
-En **Authentication → Configuración → Dominios autorizados**, agrega `TU_USUARIO.github.io`.
+En **Authentication → Configuración → Dominios autorizados**, agrega `contrerasinaki105-hash.github.io`.
 
 ### 5. Activar GitHub Pages
 En el repositorio de GitHub: **Settings → Pages → Source: Deploy from a branch → Branch: `main` / `(root)`** y guarda. Al minuto la página queda en:
-`https://TU_USUARIO.github.io/ecologia/`
+`https://contrerasinaki105-hash.github.io/INVENTARIO-GENERAL-SOLO-ECOLOGIA/`
 
 ---
 
 ## Uso
 - Entra con tu cuenta de Google.
-- Si la bodega está vacía, pulsa **cargar los 13 títulos iniciales**, o importa tu Excel desde **Agregar artículos**.
+- Si la bodega está vacía, pulsa **cargar la existencia inicial (13 títulos)**, o importa tu Excel desde **Agregar artículos**.
 - Descontar: `8/1 rojo 100 libras` y Enter. Sumar: `entrada 12/1 negro 2 bultos 24 conos 300 lb`.
 - **Editar** en cada fila sirve para corregir un conteo. La corrección queda anotada como "Ajuste" en Movimientos.
