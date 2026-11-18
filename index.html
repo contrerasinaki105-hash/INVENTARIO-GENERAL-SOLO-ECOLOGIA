@@ -1,0 +1,799 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Ecologia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: herramienta de trabajo — cabecera, barra de descuento rápido, pestañas, tabla de bodega como pieza central */
+:root{
+  --bg:#f5f6f2; --surface:#ffffff; --sunk:#eef0ea; --fg:#1b201c; --muted:#5b645d; --line:#dce1d8;
+  --accent:#2c6a49; --accent-ink:#ffffff; --accent-soft:#e2ede5;
+  --warn:#8f5a00; --warn-bg:#fbefd4; --crit:#a3312a; --crit-bg:#f8e0dc; --ok:#3f5a48; --ok-bg:#e9eee8;
+  --f-display:"Archivo", "Segoe UI", system-ui, sans-serif;
+  --f-body:"IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, Consolas, monospace;
+  --r:8px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121614; --surface:#1a1f1c; --sunk:#151a17; --fg:#e5eae5; --muted:#9aa59d; --line:#2c3530;
+  --accent:#72c296; --accent-ink:#0d1912; --accent-soft:#1e3227;
+  --warn:#e6b45c; --warn-bg:#3a2d12; --crit:#f08b81; --crit-bg:#3d1d1a; --ok:#b9c9bd; --ok-bg:#222a25; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121614; --surface:#1a1f1c; --sunk:#151a17; --fg:#e5eae5; --muted:#9aa59d; --line:#2c3530;
+  --accent:#72c296; --accent-ink:#0d1912; --accent-soft:#1e3227;
+  --warn:#e6b45c; --warn-bg:#3a2d12; --crit:#f08b81; --crit-bg:#3d1d1a; --ok:#b9c9bd; --ok-bg:#222a25; color-scheme:dark}
+*{box-sizing:border-box}
+html{color-scheme:light}
+[hidden]{display:none!important}
+body{margin:0}
+body.locked .quick,body.locked .tabs,body.locked .view,body.locked #btn-excel{display:none!important}
+.login{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:28px 20px;display:flex;flex-direction:column;align-items:flex-start;gap:12px;max-width:520px}
+.login h2{font-size:22px}
+.login p{margin:0;color:var(--muted)}
+.who{font-size:13px;color:var(--muted)}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.45}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px;display:flex;flex-direction:column;gap:18px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0}
+.mono,.num,td.num,th.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* Cabecera */
+.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px}
+.brand{display:flex;align-items:center;gap:12px}
+.brand svg{flex:none}
+.brand h1{font-size:30px;font-weight:800;letter-spacing:-.02em;line-height:1}
+.brand p{margin:3px 0 0;color:var(--muted);font-size:13px;letter-spacing:.06em;text-transform:uppercase}
+.top-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.sync{display:inline-flex;align-items:center;gap:7px;font-size:13px;color:var(--muted)}
+.sync i{width:8px;height:8px;border-radius:50%;background:var(--muted);display:inline-block}
+.sync[data-s="ok"] i{background:var(--accent)}
+.sync[data-s="saving"] i{background:var(--warn)}
+.sync[data-s="error"] i,.sync[data-s="slow"] i,.sync[data-s="local"] i{background:var(--crit)}
+
+.btn{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:var(--surface);padding:8px 14px;border-radius:var(--r);cursor:pointer;font-weight:500;white-space:nowrap}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.primary:hover{filter:brightness(1.07)}
+.btn.danger{color:var(--crit);border-color:var(--crit)}
+.btn.small{padding:5px 10px;font-size:13px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+
+.banner{border:1px solid var(--crit);background:var(--crit-bg);color:var(--crit);padding:10px 14px;border-radius:var(--r);font-size:14px}
+
+/* Barra de descuento rápido */
+.quick{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:10px}
+.quick label{font-family:var(--f-display);font-weight:700;font-size:15px}
+.quick .hint{color:var(--muted);font-size:13px;margin:0}
+.qrow{display:flex;gap:8px}
+.qrow input{flex:1;min-width:0;font-family:var(--f-mono);font-size:18px;padding:12px 14px;border:1.5px solid var(--line);border-radius:var(--r);background:var(--sunk)}
+.qrow input:focus{border-color:var(--accent);outline:none;background:var(--surface)}
+.qout{min-height:0}
+.qcard{display:flex;flex-wrap:wrap;align-items:center;gap:12px 18px;border:1px dashed var(--line);border-radius:var(--r);padding:12px 14px}
+.qcard.ready{border-style:solid;border-color:var(--accent);background:var(--accent-soft)}
+.qcard.err{border-color:var(--crit);background:var(--crit-bg);color:var(--crit)}
+.qcard .what{display:flex;align-items:center;gap:10px;min-width:0;flex:1 1 260px}
+.qcard .what b{font-family:var(--f-mono);font-weight:500}
+.qcard .delta{font-family:var(--f-mono);font-size:14px;display:flex;flex-direction:column;gap:2px}
+.qcard .delta s{color:var(--muted)}
+.qpick{display:flex;flex-wrap:wrap;gap:6px}
+.qpick button{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:5px 11px;cursor:pointer;font-size:13px;display:inline-flex;gap:6px;align-items:center}
+.qpick button:hover{border-color:var(--accent)}
+
+/* Pestañas */
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);overflow-x:auto;overflow-y:hidden;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tabs button{border:0;background:none;padding:10px 14px;cursor:pointer;color:var(--muted);font-weight:600;border-bottom:2.5px solid transparent;margin-bottom:-1px;white-space:nowrap;display:inline-flex;gap:7px;align-items:center}
+.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--accent)}
+.badge{font-family:var(--f-mono);font-size:11px;background:var(--crit-bg);color:var(--crit);border-radius:999px;padding:1px 7px}
+.badge:empty{display:none}
+
+/* Resumen */
+.summary{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.summary div{background:var(--surface);padding:12px 14px;display:flex;flex-direction:column;gap:2px}
+.summary span{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.summary b{font-family:var(--f-mono);font-size:22px;font-weight:500;font-variant-numeric:tabular-nums}
+.summary small{font-family:var(--f-mono);color:var(--muted);font-size:12px}
+@media (max-width:760px){.summary{grid-template-columns:repeat(2,minmax(0,1fr))}.summary div:last-child{grid-column:span 2}}
+
+.viewhead{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px}
+.viewhead h2{font-size:21px}
+.filters{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:4px 11px;font-family:var(--f-mono);font-size:13px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.search{padding:7px 11px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);min-width:0;width:220px;max-width:100%}
+
+/* Tabla */
+.tablebox{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th{font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);background:var(--sunk);white-space:nowrap}
+th.grp{text-align:center;border-left:1px solid var(--line)}
+td{padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:middle;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+td.num,th.num{text-align:right}
+td.sep,th.sep{border-left:1px solid var(--line)}
+tbody tr:hover td{background:var(--sunk)}
+tfoot td{background:var(--sunk);font-weight:600;border-top:1px solid var(--line)}
+tr.grp td{background:var(--accent-soft);font-weight:600;font-size:13px;border-top:1px solid var(--line)}
+tbody tr.grp:hover td{background:var(--accent-soft)}
+tr.grp td.num{font-family:var(--f-mono)}
+.check{display:inline-flex;align-items:center;gap:6px;font-size:14px;cursor:pointer;white-space:nowrap}
+.check input{accent-color:var(--accent);width:16px;height:16px}
+.desc{display:flex;align-items:center;gap:9px}
+.sw{width:16px;height:16px;border-radius:50%;flex:none;border:1px solid color-mix(in srgb,var(--fg) 35%,transparent);box-shadow:inset -3px -3px 0 rgba(0,0,0,.12)}
+.code{font-family:var(--f-mono);font-size:13px}
+.pill{display:inline-block;font-size:12px;font-weight:600;padding:2px 9px;border-radius:999px}
+.pill.ok{background:var(--ok-bg);color:var(--ok)}
+.pill.bajo{background:var(--warn-bg);color:var(--warn)}
+.pill.agotado{background:var(--crit-bg);color:var(--crit)}
+.pill.entrada{background:var(--accent-soft);color:var(--accent)}
+.pill.salida{background:var(--crit-bg);color:var(--crit)}
+.pill.ajuste{background:var(--warn-bg);color:var(--warn)}
+.empty{padding:32px 16px;text-align:center;color:var(--muted)}
+.muted{color:var(--muted)}
+
+/* Formularios */
+.formgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px 16px}
+@media (max-width:760px){.formgrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:460px){.formgrid{grid-template-columns:minmax(0,1fr)}}
+.field{display:flex;flex-direction:column;gap:5px;min-width:0}
+.field.span2{grid-column:span 2}
+@media (max-width:460px){.field.span2{grid-column:auto}}
+.field label{font-size:13px;font-weight:600}
+.field input,.field select{padding:9px 11px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);min-width:0;width:100%}
+.field input:focus,.field select:focus{border-color:var(--accent);outline:none}
+.field .help{font-size:12px;color:var(--muted)}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:16px}
+.panel h3{font-size:16px}
+.fieldset-title{grid-column:1/-1;font-size:12px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600;border-top:1px solid var(--line);padding-top:12px;margin-top:2px}
+.actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.twocol{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:900px){.twocol{grid-template-columns:minmax(0,1fr)}}
+
+/* Alertas */
+.agroup{display:flex;flex-direction:column;gap:8px}
+.agroup h3{font-size:15px;display:flex;gap:8px;align-items:center}
+.alist{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px}
+.aitem{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:10px 12px;display:flex;flex-direction:column;gap:4px}
+.aitem .desc{font-weight:500}
+.aitem .meta{font-family:var(--f-mono);font-size:12.5px;color:var(--muted)}
+
+dialog{border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--fg);padding:0;width:min(720px,calc(100vw - 32px));max-height:calc(100vh - 32px)}
+dialog::backdrop{background:rgba(10,14,12,.45)}
+dialog form{padding:18px;display:flex;flex-direction:column;gap:16px}
+.dhead{display:flex;justify-content:space-between;align-items:center;gap:10px}
+
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(18px + env(safe-area-inset-bottom,0px));background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:var(--r);font-size:14px;z-index:50;max-width:calc(100vw - 32px);box-shadow:0 6px 20px rgba(0,0,0,.2)}
+.toast.crit{background:var(--crit);color:#fff}
+@media (prefers-reduced-motion:no-preference){.toast{animation:up .18s ease-out}@keyframes up{from{transform:translate(-50%,8px);opacity:.4}}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true"><path d="M13 6h14l5 28H8z" fill="var(--accent)"/><path d="M11 14h18M10 20h20M9 26h22" stroke="var(--accent-ink)" stroke-width="1.6" opacity=".55"/><rect x="6" y="33" width="28" height="3" rx="1" fill="var(--fg)"/></svg>
+      <div><h1>Ecologia</h1><p>Inventario de hilos</p></div>
+    </div>
+    <div class="top-actions">
+      <span class="who" id="who" hidden></span>
+      <button class="btn small" id="btn-logout" type="button" hidden>Cerrar sesión</button>
+      <span class="sync" id="sync" data-s="loading"><i></i><span id="sync-t">Conectando…</span></span>
+      <button class="btn primary" id="btn-excel" type="button">
+        <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2v8m0 0L5 7m3 3 3-3M3 13h10" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>
+        Descargar Excel</button>
+    </div>
+  </header>
+
+  <div class="banner" id="banner" hidden></div>
+
+  <section class="login" id="login" hidden>
+    <h2>Entra para ver tu inventario</h2>
+    <p>Inicia sesión con la cuenta de Google autorizada. Tus datos se guardan en la nube y los verás igual en la computadora y en el celular.</p>
+    <button class="btn primary" id="btn-login" type="button">Iniciar sesión con Google</button>
+    <span class="muted" id="login-msg" style="font-size:14px"></span>
+  </section>
+
+  <section class="quick" aria-labelledby="q-label">
+    <label id="q-label" for="cmd">Descontar o sumar rápido</label>
+    <div class="qrow">
+      <input id="cmd" type="text" autocomplete="off" spellcheck="false" placeholder="8/1 rojo 100 libras">
+      <button class="btn primary" id="cmd-go" type="button" disabled>Aplicar</button>
+    </div>
+    <p class="hint">Escribe el título, el color y la cantidad. Por defecto se <b>descuenta</b>. Para sumar, empieza con <span class="mono">entrada</span>: <span class="mono">entrada 12/1 negro 2 bultos 24 conos 300 lb</span>. Acepta <span class="mono">libras</span>, <span class="mono">kilos</span>, <span class="mono">conos</span> y <span class="mono">bultos</span>.</p>
+    <div class="qout" id="cmd-out"></div>
+  </section>
+
+  <nav class="tabs" role="tablist" aria-label="Secciones">
+    <button role="tab" data-view="bodega" aria-selected="true">Bodega</button>
+    <button role="tab" data-view="agregar" aria-selected="false">Agregar artículos</button>
+    <button role="tab" data-view="movimientos" aria-selected="false">Movimientos</button>
+    <button role="tab" data-view="alertas" aria-selected="false">Alertas <span class="badge" id="alert-badge"></span></button>
+  </nav>
+
+  <!-- BODEGA -->
+  <section id="v-bodega" class="view" style="display:flex;flex-direction:column;gap:14px">
+    <div class="summary" id="summary"></div>
+    <div class="viewhead">
+      <h2>Bodega</h2>
+      <div class="filters">
+        <div class="chips" id="chips"></div>
+        <label class="check"><input type="checkbox" id="solo-exist"> Solo con existencia</label>
+        <input class="search" id="search" type="search" placeholder="Buscar código o color">
+      </div>
+    </div>
+    <div class="tablebox">
+      <table>
+        <thead>
+          <tr>
+            <th rowspan="2">Código</th><th rowspan="2">Descripción</th><th rowspan="2">Título</th>
+            <th rowspan="2" class="num sep">Bultos</th><th rowspan="2" class="num">Conos</th>
+            <th colspan="2" class="grp">Libras</th>
+            <th colspan="2" class="grp">Kilos</th>
+            <th rowspan="2" class="sep">Estado</th><th rowspan="2"></th>
+          </tr>
+          <tr><th class="num sep">Peso neto</th><th class="num">Peso bruto</th><th class="num sep">Peso neto</th><th class="num">Peso bruto</th></tr>
+        </thead>
+        <tbody id="tb-bodega"></tbody>
+        <tfoot id="tf-bodega"></tfoot>
+      </table>
+    </div>
+  </section>
+
+  <!-- AGREGAR -->
+  <section id="v-agregar" class="view" hidden>
+    <div class="twocol">
+      <form class="panel" id="f-add" novalidate>
+        <h3>Agregar artículo</h3>
+        <div class="formgrid">
+          <div class="field"><label for="a-codigo">Código</label><input id="a-codigo" required placeholder="HR8/1-15"></div>
+          <div class="field span2"><label for="a-desc">Descripción</label><input id="a-desc" required placeholder="ROJO REGENERADO 8/1"><span class="help">El título y el color se detectan solos.</span></div>
+          <div class="field"><label for="a-titulo">Título</label><input id="a-titulo" placeholder="8/1"></div>
+          <div class="field"><label for="a-color">Color</label><input id="a-color" placeholder="ROJO"></div>
+          <div class="field"><label for="a-material">Material</label><input id="a-material" value="Regenerado"></div>
+          <div class="field"><label for="a-marca">Marca</label><input id="a-marca"></div>
+          <div class="field"><label for="a-proveedor">Proveedor</label><input id="a-proveedor"></div>
+          <div class="field"><label for="a-ubicacion">Ubicación</label><input id="a-ubicacion" value="Bodega"></div>
+          <div class="fieldset-title">Existencia inicial</div>
+          <div class="field"><label for="a-bultos">Bultos</label><input id="a-bultos" type="number" min="0" step="1" inputmode="numeric" placeholder="0"></div>
+          <div class="field"><label for="a-conos">Conos</label><input id="a-conos" type="number" min="0" step="1" inputmode="numeric" placeholder="0"></div>
+          <div class="field"><label for="a-neto">Peso neto</label><input id="a-neto" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0"></div>
+          <div class="field"><label for="a-bruto">Peso bruto</label><input id="a-bruto" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0"></div>
+          <div class="field"><label for="a-unidad">Unidad del peso</label><select id="a-unidad"><option value="lb">Libras</option><option value="kg">Kilos</option></select></div>
+          <div class="field"><label for="a-min">Avisar cuando baje de</label><input id="a-min" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0"><span class="help">En la unidad elegida. 0 = solo avisa si se agota.</span></div>
+        </div>
+        <div class="actions"><button class="btn primary" type="submit">Guardar artículo</button><span class="muted" id="a-msg"></span></div>
+      </form>
+      <div class="panel">
+        <h3>Importar desde Excel</h3>
+        <p class="muted" style="margin:0;font-size:14px">Sube un .xlsx con columnas como <span class="mono">Código</span>, <span class="mono">Descripción</span>, <span class="mono">Bultos</span>, <span class="mono">Conos</span>, <span class="mono">Peso neto</span>, <span class="mono">Peso bruto</span>. Los códigos que ya existen se actualizan; los nuevos se agregan.</p>
+        <input id="imp-file" type="file" accept=".xlsx,.xls,.csv">
+        <span class="muted" id="imp-msg" style="font-size:14px"></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- MOVIMIENTOS -->
+  <section id="v-movimientos" class="view" hidden style="flex-direction:column;gap:14px">
+    <div class="viewhead">
+      <h2>Movimientos</h2>
+      <div class="chips" id="mov-chips"></div>
+    </div>
+    <div class="tablebox">
+      <table>
+        <thead><tr><th>Fecha</th><th>Tipo</th><th>Código</th><th>Descripción</th><th class="num">Bultos</th><th class="num">Conos</th><th class="num">Neto lb</th><th class="num">Neto kg</th><th class="num">Queda lb</th><th>Nota</th></tr></thead>
+        <tbody id="tb-mov"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ALERTAS -->
+  <section id="v-alertas" class="view" hidden style="flex-direction:column;gap:18px">
+    <div class="viewhead"><h2>Alertas de stock</h2><span class="muted" style="font-size:14px">Hilos agotados o por debajo de su mínimo, por proveedor.</span></div>
+    <div id="alert-body" style="display:flex;flex-direction:column;gap:18px"></div>
+  </section>
+</div>
+
+<dialog id="dlg">
+  <form id="f-edit" method="dialog" novalidate>
+    <div class="dhead"><h3 id="e-title">Editar artículo</h3><button class="btn small" type="button" id="e-close">Cerrar</button></div>
+    <div class="formgrid">
+      <div class="field"><label for="e-codigo">Código</label><input id="e-codigo" disabled></div>
+      <div class="field span2"><label for="e-desc">Descripción</label><input id="e-desc"></div>
+      <div class="field"><label for="e-titulo">Título</label><input id="e-titulo"></div>
+      <div class="field"><label for="e-color">Color</label><input id="e-color"></div>
+      <div class="field"><label for="e-material">Material</label><input id="e-material"></div>
+      <div class="field"><label for="e-marca">Marca</label><input id="e-marca"></div>
+      <div class="field"><label for="e-proveedor">Proveedor</label><input id="e-proveedor"></div>
+      <div class="field"><label for="e-ubicacion">Ubicación</label><input id="e-ubicacion"></div>
+      <div class="fieldset-title">Existencia (corregir conteo, en libras)</div>
+      <div class="field"><label for="e-bultos">Bultos</label><input id="e-bultos" type="number" min="0" step="1"></div>
+      <div class="field"><label for="e-conos">Conos</label><input id="e-conos" type="number" min="0" step="1"></div>
+      <div class="field"><label for="e-neto">Peso neto (lb)</label><input id="e-neto" type="number" min="0" step="0.01"></div>
+      <div class="field"><label for="e-bruto">Peso bruto (lb)</label><input id="e-bruto" type="number" min="0" step="0.01"></div>
+      <div class="field"><label for="e-min">Avisar cuando baje de (lb)</label><input id="e-min" type="number" min="0" step="0.01"></div>
+    </div>
+    <div class="actions" style="justify-content:space-between">
+      <button class="btn danger" type="button" id="e-del">Eliminar</button>
+      <button class="btn primary" type="button" id="e-save">Guardar cambios</button>
+    </div>
+  </form>
+</dialog>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+(() => {
+const KG_PER_LB = 0.45359237, LB_PER_KG = 2.20462262;
+const COLORS = [
+  ['azul marino','#1e2b4f'],['gris claro','#c9cbcd'],['gris oscuro','#55595e'],['rojo vino','#6d1f2b'],['verde militar','#4b5a33'],
+  ['marino','#1e2b4f'],['oxford','#4a4e55'],['blanco','#f3f3ee'],['negro','#1b1b1b'],['rojo','#b42a22'],['azul','#2b5aa8'],
+  ['gris','#8a8d91'],['verde','#2f7a45'],['amarillo','#e3b91f'],['beige','#d8c7a3'],['crudo','#ece4cf'],['cafe','#6b4a2f'],
+  ['rosado','#e59bb5'],['rosa','#e59bb5'],['morado','#6a3f8f'],['naranja','#e07b26'],['celeste','#8cc4e8'],['vino','#6d1f2b'],['melange','#a9abad']
+];
+const state = { hilos: [], movs: [], db: null, dl: null, local: false, titulo: 'todos', q: '', movTipo: 'todos', parsed: null, editId: null };
+
+const $ = s => document.querySelector(s);
+const fmt = new Intl.NumberFormat('es-GT', { maximumFractionDigits: 2 });
+const r2 = n => Math.round((+n || 0) * 100) / 100;
+const f2 = n => fmt.format(r2(n));
+const kg = lb => (+lb || 0) * KG_PER_LB;
+const num = v => { const n = parseFloat(String(v ?? '').replace(',', '.')); return isFinite(n) ? n : 0; };
+const norm = s => String(s || '').toLowerCase().normalize('NFD').replace(new RegExp('[\\u0300-\\u036f]', 'g'), '').replace(/\s+/g, ' ').trim();
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const docId = code => String(code).trim().toUpperCase().replace(/\//g, '_').replace(/[^A-Z0-9_\-.~:@+]/g, '-').slice(0, 180);
+const tituloDe = s => { const m = String(s || '').match(/(\d+\s*\/\s*\d+)/); return m ? m[1].replace(/\s/g, '') : ''; };
+function colorDe(txt) { const d = norm(txt); for (const [k, hex] of COLORS) if (d.includes(k)) return { nombre: k.toUpperCase(), hex }; return { nombre: '', hex: '' }; }
+function hexDe(h) { return colorDe(h.color || '').hex || colorDe(h.descripcion).hex || '#d6d8d2'; }
+const hayExist = h => (h.netoLb || 0) > 0.004 || (h.bultos || 0) > 0 || (h.conos || 0) > 0;
+const sumar = hs => hs.reduce((a, h) => (a.b += h.bultos || 0, a.c += h.conos || 0, a.n += h.netoLb || 0, a.br += h.brutoLb || 0, a), { b: 0, c: 0, n: 0, br: 0 });
+function estado(h) { if ((h.netoLb || 0) <= 0.004) return 'agotado'; if ((h.minLb || 0) > 0 && h.netoLb <= h.minLb) return 'bajo'; return 'ok'; }
+const ESTADO_TXT = { ok: 'En existencia', bajo: 'Stock bajo', agotado: 'Agotado' };
+const titSort = t => { const m = String(t).match(/(\d+)\/(\d+)/); return m ? -(+m[1] * 100 + +m[2]) : 0; };
+const sortHilos = a => a.slice().sort((x, y) => titSort(x.titulo) - titSort(y.titulo) || String(x.codigo).localeCompare(String(y.codigo)));
+
+let toastT;
+function toast(msg, kind) {
+  document.querySelectorAll('.toast').forEach(t => t.remove());
+  const t = document.createElement('div'); t.className = 'toast' + (kind === 'crit' ? ' crit' : ''); t.textContent = msg; t.setAttribute('role', 'status');
+  document.body.appendChild(t); clearTimeout(toastT); toastT = setTimeout(() => t.remove(), 3800);
+}
+function setSync(s) {
+  const el = $('#sync'); el.dataset.s = s;
+  $('#sync-t').textContent = { loading: 'Conectando…', ok: 'Guardado en la nube', saving: 'Guardando…', error: 'Error al guardar', slow: 'Sin conexión con la nube todavía', local: 'Sin guardado en la nube' }[s] || s;
+}
+
+/* ---------- Almacenamiento ---------- */
+const strip = h => { const o = { ...h }; delete o.id; return o; };
+async function guardar(fn) {
+  setSync('saving');
+  try { await fn(); setSync(state.local ? 'local' : 'ok'); return true; }
+  catch (e) {
+    setSync('error');
+    const code = e && e.code;
+    toast(code === 'quota_exceeded' ? 'La base de datos está llena. Borra movimientos viejos para seguir.' : code === 'invalid_argument' ? 'No tienes permiso para guardar en esta página.' : 'No se pudo guardar. Revisa tu conexión e inténtalo otra vez.', 'crit');
+    return false;
+  }
+}
+async function putHilo(h) {
+  if (state.db) return state.db.collection('hilos').doc(h.id).set(strip(h));
+  const i = state.hilos.findIndex(x => x.id === h.id); if (i >= 0) state.hilos[i] = h; else state.hilos.push(h); render();
+}
+async function delHilo(id) {
+  if (state.db) return state.db.collection('hilos').doc(id).delete();
+  state.hilos = state.hilos.filter(x => x.id !== id); render();
+}
+async function addMov(m) {
+  if (state.db) return state.db.collection('movimientos').add(m);
+  state.movs.unshift(m); render();
+}
+
+/* ---------- Movimientos ---------- */
+function tara(h) { return (h.bultos || 0) > 0 ? Math.max(0, ((h.brutoLb || 0) - (h.netoLb || 0)) / h.bultos) : (h.taraLb || 0); }
+function calcMov(h, tipo, lb, bultos, conos) {
+  const t = tara(h), s = tipo === 'entrada' ? 1 : -1;
+  const dB = Math.round(bultos || 0), dC = Math.round(conos || 0), dN = lb || 0, dBr = dN + t * dB;
+  const n = { bultos: (h.bultos || 0) + s * dB, conos: (h.conos || 0) + s * dC, netoLb: r2((h.netoLb || 0) + s * dN), brutoLb: r2((h.brutoLb || 0) + s * dBr) };
+  if (n.netoLb < 0 && n.netoLb > -0.01) n.netoLb = 0;
+  if (n.brutoLb < n.netoLb) n.brutoLb = n.netoLb;
+  if (n.netoLb === 0 && n.bultos === 0) n.brutoLb = 0;
+  let error = '';
+  if (tipo === 'salida' && n.netoLb < 0) error = `Solo hay ${f2(h.netoLb)} lb de este hilo.`;
+  else if (tipo === 'salida' && n.bultos < 0) error = `Solo hay ${h.bultos || 0} bultos de este hilo.`;
+  else if (tipo === 'salida' && n.conos < 0) error = `Solo hay ${h.conos || 0} conos de este hilo.`;
+  return { n, t, dB, dC, dN, error };
+}
+async function aplicar(h, tipo, lb, bultos, conos, nota) {
+  const c = calcMov(h, tipo, lb, bultos, conos);
+  if (c.error) { toast(c.error, 'crit'); return false; }
+  const nuevo = { ...h, ...c.n, taraLb: r2(c.t), actualizado: new Date().toISOString() };
+  return guardar(async () => {
+    await putHilo(nuevo);
+    await addMov({ fecha: new Date().toISOString(), tipo, hiloId: h.id, codigo: h.codigo, descripcion: h.descripcion, bultos: c.dB, conos: c.dC, netoLb: r2(c.dN), quedaLb: nuevo.netoLb, nota: nota || '' });
+  });
+}
+
+/* ---------- Buscador rápido ---------- */
+const STOP = new Set(['de', 'del', 'la', 'el', 'hilo', 'hilos', 'y', 'con', 'a', 'en', 'para', 'regenerado']);
+function parseCmd(raw) {
+  let t = ' ' + norm(raw) + ' ';
+  if (!t.trim()) return null;
+  let tipo = 'salida';
+  const mIn = t.match(/^\s*(\+|entrada|entra|ingreso|ingresar|agregar|sumar|suma|llego|llegaron)\b/);
+  if (mIn) { tipo = 'entrada'; t = ' ' + t.slice(mIn[0].length) + ' '; }
+  else t = t.replace(/^\s*(-|salida|sale|descontar|descuenta|quitar|restar|resta|usar|uso)\b/, ' ');
+  let lb = 0, bultos = 0, conos = 0, hayCant = false;
+  t = t.replace(/(\d+(?:[.,]\d+)?)\s*(libras?|lbs?|kilos?|kgs?|kilogramos?|bultos?|bto?s?|bult|conos?|carretes?)(?=[^a-z]|$)/g, (_, n, u) => {
+    const v = num(n); hayCant = true;
+    if (/^(k)/.test(u)) lb += v * LB_PER_KG; else if (/^b/.test(u)) bultos += v; else if (/^c/.test(u)) conos += v; else lb += v;
+    return ' ';
+  });
+  let titulo = '';
+  t = t.replace(/(\d+)\s*\/\s*(\d+)/, (m, a, b) => { titulo = a + '/' + b; return ' '; });
+  if (!hayCant) { const m = t.match(/(?:^|\s)(\d+(?:[.,]\d+)?)(?=\s|$)/); if (m) { lb = num(m[1]); hayCant = true; t = t.replace(m[0], ' '); } }
+  const words = t.split(/\s+/).filter(w => w && !STOP.has(w));
+  let cands = state.hilos.filter(h => {
+    if (titulo && String(h.titulo || '') !== titulo && !norm(h.codigo).includes(titulo)) return false;
+    const hay = norm([h.codigo, h.descripcion, h.color, h.titulo].join(' '));
+    return words.every(w => hay.includes(w));
+  });
+  if (state.pickId && cands.length > 1) { const sel = cands.find(h => h.id === state.pickId); if (sel) cands = [sel]; }
+  return { tipo, lb, bultos, conos, titulo, words, cands, hayCant, raw };
+}
+function swatch(h) { return `<span class="sw" style="background:${esc(hexDe(h))}"></span>`; }
+function renderCmd() {
+  const out = $('#cmd-out'), go = $('#cmd-go');
+  const p = state.parsed = parseCmd($('#cmd').value);
+  go.disabled = true; go.textContent = 'Aplicar';
+  if (!p) { out.innerHTML = ''; return; }
+  if (!p.titulo && !p.words.length) { out.innerHTML = `<div class="qcard">Escribe el título o el color del hilo.</div>`; return; }
+  if (!p.cands.length) { out.innerHTML = `<div class="qcard err">No encontré un hilo ${p.titulo ? esc(p.titulo) + ' ' : ''}${esc(p.words.join(' '))}. Revisa el título y el color, o agrégalo en «Agregar artículos».</div>`; return; }
+  if (p.cands.length > 1) {
+    out.innerHTML = `<div class="qcard"><span>Hay ${p.cands.length} hilos que coinciden. Elige uno o escribe el color:</span><div class="qpick">${sortHilos(p.cands).slice(0, 12).map(h => `<button type="button" data-pick="${esc(h.id)}">${swatch(h)}${esc(h.descripcion)}</button>`).join('')}</div></div>`;
+    return;
+  }
+  const h = p.cands[0]; p.h = h;
+  if (!p.hayCant || (p.lb <= 0 && p.bultos <= 0 && p.conos <= 0)) {
+    out.innerHTML = `<div class="qcard"><div class="what">${swatch(h)}<span><b>${esc(h.codigo)}</b> ${esc(h.descripcion)}</span></div><span class="muted">Hay ${f2(h.netoLb)} lb · ${h.bultos || 0} bultos · ${h.conos || 0} conos. Falta la cantidad, por ejemplo <span class="mono">100 libras</span>.</span></div>`;
+    return;
+  }
+  const c = calcMov(h, p.tipo, p.lb, p.bultos, p.conos);
+  const verbo = p.tipo === 'entrada' ? 'Sumar' : 'Descontar';
+  const cant = [p.bultos ? `${p.bultos} bulto${p.bultos == 1 ? '' : 's'}` : '', p.conos ? `${p.conos} cono${p.conos == 1 ? '' : 's'}` : '', p.lb ? `${f2(p.lb)} lb (${f2(kg(p.lb))} kg)` : ''].filter(Boolean).join(', ');
+  out.innerHTML = `<div class="qcard ${c.error ? 'err' : 'ready'}">
+    <div class="what">${swatch(h)}<span>${verbo} <b>${esc(cant)}</b> de <b>${esc(h.codigo)}</b> ${esc(h.descripcion)}</span></div>
+    ${c.error ? `<span>${esc(c.error)}</span>` : `<div class="delta"><span>Neto: <s>${f2(h.netoLb)}</s> → <b>${f2(c.n.netoLb)} lb</b> · ${f2(kg(c.n.netoLb))} kg</span><span>Bultos: <s>${h.bultos || 0}</s> → <b>${c.n.bultos}</b> · Conos: <s>${h.conos || 0}</s> → <b>${c.n.conos}</b> · Bruto ${f2(c.n.brutoLb)} lb</span></div>`}
+  </div>`;
+  if (!c.error) { go.disabled = false; go.textContent = verbo + (p.tipo === 'entrada' ? '' : ''); }
+}
+async function runCmd() {
+  const p = state.parsed; if (!p || !p.h || $('#cmd-go').disabled) return;
+  $('#cmd-go').disabled = true;
+  const ok = await aplicar(p.h, p.tipo, p.lb, p.bultos, p.conos, p.raw.trim());
+  if (ok) { toast(`${p.tipo === 'entrada' ? 'Sumado a' : 'Descontado de'} ${p.h.descripcion}`); $('#cmd').value = ''; state.pickId = null; renderCmd(); $('#cmd').focus(); }
+  else renderCmd();
+}
+
+/* ---------- Render ---------- */
+function filtrados() {
+  const q = norm(state.q);
+  return sortHilos(state.hilos).filter(h => (state.titulo === 'todos' || h.titulo === state.titulo) && (!state.soloExist || hayExist(h)) && (!q ||norm([h.codigo, h.descripcion, h.color, h.ubicacion, h.proveedor].join(' ')).includes(q)));
+}
+function render() {
+  const all = state.hilos;
+  const alertas = all.filter(h => estado(h) !== 'ok');
+  $('#alert-badge').textContent = alertas.length || '';
+  const tot = sumar(all);
+  $('#summary').innerHTML = `
+    <div><span>Títulos de hilo</span><b>${all.length}</b><small>${all.filter(hayExist).length} con existencia</small></div>
+    <div><span>Bultos</span><b>${fmt.format(tot.b)}</b><small>en bodega</small></div>
+    <div><span>Conos</span><b>${fmt.format(tot.c)}</b><small>en bodega</small></div>
+    <div><span>Peso neto</span><b>${f2(tot.n)} lb</b><small>${f2(kg(tot.n))} kg</small></div>
+    <div><span>En alerta</span><b>${alertas.length}</b><small>${all.filter(h => estado(h) === 'agotado').length} agotados</small></div>`;
+  const tits = [...new Set(all.map(h => h.titulo).filter(Boolean))].sort((a, b) => titSort(a) - titSort(b));
+  if (state.titulo !== 'todos' && !tits.includes(state.titulo)) state.titulo = 'todos';
+  $('#chips').innerHTML = ['todos', ...tits].map(t => `<button class="chip" type="button" data-tit="${esc(t)}" aria-pressed="${state.titulo === t}">${t === 'todos' ? 'Todos' : esc(t)}</button>`).join('');
+  const rows = filtrados();
+  const cols = 11;
+  const numCells = s => `<td class="num sep">${fmt.format(s.b)}</td><td class="num">${fmt.format(s.c)}</td><td class="num sep">${f2(s.n)}</td><td class="num">${f2(s.br)}</td><td class="num sep">${f2(kg(s.n))}</td><td class="num">${f2(kg(s.br))}</td>`;
+  const fila = h => { const e = estado(h); return `<tr>
+      <td class="code">${esc(h.codigo)}</td>
+      <td><div class="desc">${swatch(h)}<span>${esc(h.descripcion)}</span></div></td>
+      <td class="code">${esc(h.titulo)}</td>
+      ${numCells({ b: h.bultos || 0, c: h.conos || 0, n: h.netoLb || 0, br: h.brutoLb || 0 })}
+      <td class="sep"><span class="pill ${e}">${ESTADO_TXT[e]}</span></td>
+      <td><button class="btn small" type="button" data-edit="${esc(h.id)}">Editar</button></td></tr>`; };
+  if (!state.loaded) $('#tb-bodega').innerHTML = `<tr><td colspan="${cols}" class="empty">Cargando inventario…</td></tr>`;
+  else if (!all.length) $('#tb-bodega').innerHTML = `<tr><td colspan="${cols}" class="empty">Todavía no hay hilos. Ve a «Agregar artículos» para registrar el primero, importa tu Excel o <button class="btn small primary" type="button" id="btn-seed">cargar los 13 títulos iniciales</button></td></tr>`;
+  else if (!rows.length) $('#tb-bodega').innerHTML = `<tr><td colspan="${cols}" class="empty">${state.soloExist ? 'Ningún hilo tiene existencia todavía. Quita el filtro «Solo con existencia» para ver todos.' : 'Ningún hilo coincide con la búsqueda.'}</td></tr>`;
+  else {
+    // agrupado por título (calibre), con el subtotal de cada grupo en su encabezado
+    const grupos = [];
+    rows.forEach(h => { const k = h.titulo || 'Sin título'; let g = grupos.find(x => x.k === k); if (!g) grupos.push(g = { k, hs: [] }); g.hs.push(h); });
+    $('#tb-bodega').innerHTML = grupos.map(g => `<tr class="grp"><td colspan="3">Título ${esc(g.k)} <span class="muted" style="font-weight:400">· ${g.hs.length} ${g.hs.length === 1 ? 'hilo' : 'hilos'}</span></td>${numCells(sumar(g.hs))}<td class="sep"></td><td></td></tr>` + g.hs.map(fila).join('')).join('');
+  }
+  $('#tf-bodega').innerHTML = rows.length ? `<tr><td colspan="3">Total ${state.titulo === 'todos' ? 'bodega' : esc(state.titulo)} (${rows.length})</td>${numCells(sumar(rows))}<td class="sep"></td><td></td></tr>` : '';
+
+  // Movimientos
+  $('#mov-chips').innerHTML = [['todos', 'Todos'], ['salida', 'Salidas'], ['entrada', 'Entradas'], ['ajuste', 'Ajustes']].map(([k, l]) => `<button class="chip" type="button" data-mt="${k}" aria-pressed="${state.movTipo === k}">${l}</button>`).join('');
+  const movs = state.movs.filter(m => state.movTipo === 'todos' || m.tipo === state.movTipo);
+  const dfmt = new Intl.DateTimeFormat('es-GT', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  $('#tb-mov').innerHTML = movs.length ? movs.map(m => { const s = m.tipo === 'salida' ? '−' : m.tipo === 'entrada' ? '+' : '±'; return `<tr>
+      <td class="mono" style="font-size:13px">${esc(dfmt.format(new Date(m.fecha)))}</td>
+      <td><span class="pill ${esc(m.tipo)}">${esc(m.tipo[0].toUpperCase() + m.tipo.slice(1))}</span></td>
+      <td class="code">${esc(m.codigo)}</td><td>${esc(m.descripcion)}</td>
+      <td class="num">${m.bultos ? s + fmt.format(Math.abs(m.bultos)) : '—'}</td>
+      <td class="num">${m.conos ? s + fmt.format(Math.abs(m.conos)) : '—'}</td>
+      <td class="num">${m.netoLb ? s + f2(Math.abs(m.netoLb)) : '—'}</td>
+      <td class="num">${m.netoLb ? s + f2(kg(Math.abs(m.netoLb))) : '—'}</td>
+      <td class="num">${f2(m.quedaLb)}</td>
+      <td class="muted" style="white-space:normal;min-width:160px">${esc(m.nota)}</td></tr>`; }).join('')
+    : `<tr><td colspan="10" class="empty">Aún no hay movimientos. Cada descuento, entrada o corrección quedará anotado aquí.</td></tr>`;
+
+  // Alertas
+  if (!alertas.length) $('#alert-body').innerHTML = `<div class="empty">${all.length ? 'Todo en orden: ningún hilo está agotado ni bajo su mínimo.' : 'Cuando agregues hilos, aquí verás los que se acaban.'}</div>`;
+  else {
+    const grupos = {};
+    sortHilos(alertas).forEach(h => (grupos[h.proveedor || 'Sin proveedor'] ||= []).push(h));
+    $('#alert-body').innerHTML = Object.entries(grupos).map(([prov, hs]) => `<div class="agroup"><h3>${esc(prov)} <span class="muted mono" style="font-size:13px;font-weight:400">${hs.length}</span></h3><div class="alist">${hs.map(h => { const e = estado(h); return `<div class="aitem"><div class="desc">${swatch(h)}<span>${esc(h.descripcion)}</span></div><div class="meta">${esc(h.codigo)} · ${f2(h.netoLb)} lb · ${h.bultos || 0} bultos${h.minLb ? ` · mínimo ${f2(h.minLb)} lb` : ''}</div><div><span class="pill ${e}">${ESTADO_TXT[e]}</span></div></div>`; }).join('')}</div></div>`).join('');
+  }
+  renderCmd();
+}
+
+/* ---------- Pestañas ---------- */
+const VIEWS = ['bodega', 'agregar', 'movimientos', 'alertas'];
+function show(v) {
+  if (!VIEWS.includes(v)) v = 'bodega';
+  VIEWS.forEach(k => { const el = $('#v-' + k); el.hidden = k !== v; if (k === v) el.style.display = 'flex'; });
+  document.querySelectorAll('.tabs button').forEach(b => b.setAttribute('aria-selected', b.dataset.view === v));
+}
+document.querySelector('.tabs').addEventListener('click', e => { const b = e.target.closest('button[data-view]'); if (b) { location.hash = b.dataset.view; show(b.dataset.view); } });
+window.addEventListener('hashchange', () => show(location.hash.slice(1)));
+
+/* ---------- Eventos ---------- */
+$('#cmd').addEventListener('input', () => { state.pickId = null; renderCmd(); });
+$('#cmd').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); runCmd(); } });
+$('#cmd-go').addEventListener('click', runCmd);
+$('#cmd-out').addEventListener('click', e => {
+  const b = e.target.closest('[data-pick]'); if (!b) return;
+  state.pickId = b.dataset.pick; renderCmd(); $('#cmd').focus();
+});
+$('#chips').addEventListener('click', e => { const b = e.target.closest('[data-tit]'); if (b) { state.titulo = b.dataset.tit; render(); } });
+$('#search').addEventListener('input', e => { state.q = e.target.value; render(); });
+$('#solo-exist').addEventListener('change', e => { state.soloExist = e.target.checked; render(); });
+$('#mov-chips').addEventListener('click', e => { const b = e.target.closest('[data-mt]'); if (b) { state.movTipo = b.dataset.mt; render(); } });
+
+// Agregar
+$('#a-desc').addEventListener('input', e => {
+  const t = tituloDe(e.target.value); if (t) $('#a-titulo').value = t;
+  const c = colorDe(e.target.value).nombre; if (c) $('#a-color').value = c;
+});
+$('#f-add').addEventListener('submit', async e => {
+  e.preventDefault();
+  const codigo = $('#a-codigo').value.trim().toUpperCase(), desc = $('#a-desc').value.trim().toUpperCase();
+  const msg = $('#a-msg');
+  if (!codigo || !desc) { msg.textContent = 'El código y la descripción son obligatorios.'; return; }
+  const id = docId(codigo);
+  if (state.hilos.some(h => h.id === id)) { msg.textContent = `El código ${codigo} ya existe. Edítalo desde Bodega.`; return; }
+  const f = $('#a-unidad').value === 'kg' ? LB_PER_KG : 1;
+  const bultos = Math.max(0, Math.round(num($('#a-bultos').value)));
+  const conos = Math.max(0, Math.round(num($('#a-conos').value)));
+  const neto = r2(Math.max(0, num($('#a-neto').value) * f));
+  let bruto = r2(Math.max(0, num($('#a-bruto').value) * f)); if (bruto < neto) bruto = neto;
+  const h = { id, codigo, descripcion: desc, titulo: $('#a-titulo').value.trim() || tituloDe(desc), color: $('#a-color').value.trim().toUpperCase(),
+    material: $('#a-material').value.trim(), marca: $('#a-marca').value.trim(), proveedor: $('#a-proveedor').value.trim(), ubicacion: $('#a-ubicacion').value.trim() || 'Bodega',
+    bultos, conos, netoLb: neto, brutoLb: bruto, taraLb: bultos ? r2((bruto - neto) / bultos) : 0, minLb: r2(num($('#a-min').value) * f), creado: new Date().toISOString(), actualizado: new Date().toISOString() };
+  const ok = await guardar(async () => {
+    await putHilo(h);
+    if (neto || bultos || conos) await addMov({ fecha: new Date().toISOString(), tipo: 'entrada', hiloId: id, codigo, descripcion: desc, bultos, conos, netoLb: neto, quedaLb: neto, nota: 'Existencia inicial' });
+  });
+  if (ok) {
+    toast(`Guardado: ${desc}`); msg.textContent = '';
+    ['a-codigo', 'a-desc', 'a-titulo', 'a-color', 'a-bultos', 'a-conos', 'a-neto', 'a-bruto', 'a-min'].forEach(i => $('#' + i).value = '');
+    $('#a-codigo').focus();
+  }
+});
+
+// Editar
+const dlg = $('#dlg');
+$('#tb-bodega').addEventListener('click', e => { const b = e.target.closest('[data-edit]'); if (b) abrirEditar(b.dataset.edit); });
+function abrirEditar(id) {
+  const h = state.hilos.find(x => x.id === id); if (!h) return;
+  state.editId = id;
+  $('#e-title').textContent = h.descripcion;
+  const set = (k, v) => $('#e-' + k).value = v ?? '';
+  set('codigo', h.codigo); set('desc', h.descripcion); set('titulo', h.titulo); set('color', h.color); set('material', h.material); set('marca', h.marca);
+  set('proveedor', h.proveedor); set('ubicacion', h.ubicacion); set('bultos', h.bultos || 0); set('conos', h.conos || 0); set('neto', r2(h.netoLb)); set('bruto', r2(h.brutoLb)); set('min', r2(h.minLb));
+  resetDel();
+  if (dlg.showModal) dlg.showModal(); else dlg.setAttribute('open', '');
+}
+$('#e-close').addEventListener('click', () => dlg.close());
+$('#e-save').addEventListener('click', async () => {
+  const h = state.hilos.find(x => x.id === state.editId); if (!h) return dlg.close();
+  const bultos = Math.max(0, Math.round(num($('#e-bultos').value)));
+  const conos = Math.max(0, Math.round(num($('#e-conos').value)));
+  const neto = r2(Math.max(0, num($('#e-neto').value)));
+  let bruto = r2(Math.max(0, num($('#e-bruto').value))); if (bruto < neto) bruto = neto;
+  const n = { ...h, descripcion: $('#e-desc').value.trim().toUpperCase() || h.descripcion, titulo: $('#e-titulo').value.trim(), color: $('#e-color').value.trim().toUpperCase(),
+    material: $('#e-material').value.trim(), marca: $('#e-marca').value.trim(), proveedor: $('#e-proveedor').value.trim(), ubicacion: $('#e-ubicacion').value.trim(),
+    bultos, conos, netoLb: neto, brutoLb: bruto, minLb: r2(num($('#e-min').value)), actualizado: new Date().toISOString() };
+  if (bultos) n.taraLb = r2((bruto - neto) / bultos);
+  const dB = bultos - (h.bultos || 0), dC = conos - (h.conos || 0), dN = r2(neto - (h.netoLb || 0));
+  const ok = await guardar(async () => {
+    await putHilo(n);
+    if (dB || dC || dN || r2(bruto - (h.brutoLb || 0))) await addMov({ fecha: new Date().toISOString(), tipo: 'ajuste', hiloId: h.id, codigo: h.codigo, descripcion: n.descripcion, bultos: dB, conos: dC, netoLb: dN, quedaLb: neto, nota: 'Corrección de conteo' });
+  });
+  if (ok) { dlg.close(); toast('Cambios guardados'); }
+});
+let delT;
+function resetDel() { const b = $('#e-del'); b.textContent = 'Eliminar'; b.dataset.armed = ''; clearTimeout(delT); }
+$('#e-del').addEventListener('click', async () => {
+  const b = $('#e-del');
+  if (!b.dataset.armed) { b.dataset.armed = '1'; b.textContent = '¿Seguro? Toca otra vez para eliminar'; delT = setTimeout(resetDel, 4000); return; }
+  const id = state.editId; resetDel();
+  const ok = await guardar(() => delHilo(id));
+  if (ok) { dlg.close(); toast('Artículo eliminado'); }
+});
+
+/* ---------- Excel ---------- */
+function hoy() { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+$('#btn-excel').addEventListener('click', async () => {
+  if (!window.XLSX) { toast('No se pudo cargar el generador de Excel. Recarga la página.', 'crit'); return; }
+  const X = window.XLSX, wb = X.utils.book_new();
+  const inv = [['Código', 'Descripción', 'Título', 'Color', 'Material', 'Marca', 'Proveedor', 'Ubicación', 'Bultos', 'Conos', 'Peso neto (lb)', 'Peso bruto (lb)', 'Peso neto (kg)', 'Peso bruto (kg)', 'Mínimo (lb)', 'Estado']];
+  sortHilos(state.hilos).forEach(h => inv.push([h.codigo, h.descripcion, h.titulo, h.color, h.material, h.marca, h.proveedor, h.ubicacion, h.bultos || 0, h.conos || 0, r2(h.netoLb), r2(h.brutoLb), r2(kg(h.netoLb)), r2(kg(h.brutoLb)), r2(h.minLb), ESTADO_TXT[estado(h)]]));
+  const t = sumar(state.hilos);
+  inv.push(['TOTAL', '', '', '', '', '', '', '', t.b, t.c, r2(t.n), r2(t.br), r2(kg(t.n)), r2(kg(t.br)), '', '']);
+  const ws1 = X.utils.aoa_to_sheet(inv); ws1['!cols'] = [12, 30, 8, 14, 12, 12, 16, 16, 8, 8, 14, 14, 14, 14, 11, 14].map(w => ({ wch: w }));
+  X.utils.book_append_sheet(wb, ws1, 'Inventario');
+  const mv = [['Fecha', 'Tipo', 'Código', 'Descripción', 'Bultos', 'Conos', 'Neto (lb)', 'Neto (kg)', 'Queda (lb)', 'Nota']];
+  state.movs.forEach(m => mv.push([new Date(m.fecha).toLocaleString('es-GT'), m.tipo, m.codigo, m.descripcion, m.bultos || 0, m.conos || 0, r2(m.netoLb), r2(kg(m.netoLb)), r2(m.quedaLb), m.nota || '']));
+  const ws2 = X.utils.aoa_to_sheet(mv); ws2['!cols'] = [20, 9, 12, 30, 8, 8, 11, 11, 11, 30].map(w => ({ wch: w }));
+  X.utils.book_append_sheet(wb, ws2, 'Movimientos');
+  const al = [['Código', 'Descripción', 'Proveedor', 'Bultos', 'Peso neto (lb)', 'Mínimo (lb)', 'Estado']];
+  sortHilos(state.hilos.filter(h => estado(h) !== 'ok')).forEach(h => al.push([h.codigo, h.descripcion, h.proveedor, h.bultos || 0, r2(h.netoLb), r2(h.minLb), ESTADO_TXT[estado(h)]]));
+  const ws3 = X.utils.aoa_to_sheet(al); ws3['!cols'] = [12, 30, 16, 8, 14, 11, 14].map(w => ({ wch: w }));
+  X.utils.book_append_sheet(wb, ws3, 'Stock bajo');
+  const data = new Uint8Array(X.write(wb, { bookType: 'xlsx', type: 'array' }));
+  const url = URL.createObjectURL(new Blob([data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }));
+  const a = document.createElement('a'); a.href = url; a.download = `Ecologia-inventario-${hoy()}.xlsx`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+  toast('Excel descargado');
+});
+
+$('#imp-file').addEventListener('change', async e => {
+  const file = e.target.files[0]; const msg = $('#imp-msg'); if (!file) return;
+  if (!window.XLSX) { msg.textContent = 'No se pudo cargar el lector de Excel. Recarga la página.'; return; }
+  msg.textContent = 'Leyendo…';
+  try {
+    const wb = XLSX.read(await file.arrayBuffer());
+    const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, defval: '' });
+    let hi = rows.findIndex(r => r.some(c => /^c[oó]digo|^code/i.test(String(c).trim())));
+    const col = {};
+    if (hi >= 0) {
+      rows[hi].forEach((c, i) => {
+        const n = norm(c);
+        if (/^codigo|^code/.test(n)) col.codigo ??= i;
+        else if (/descripcion|nombre|articulo/.test(n)) col.desc ??= i;
+        else if (/^titulo/.test(n)) col.titulo ??= i;
+        else if (/bulto/.test(n)) col.bultos ??= i;
+        else if (/cono|carrete/.test(n)) col.conos ??= i;
+        else if (/neto/.test(n)) { if (/kg|kilo/.test(n)) col.netoKg ??= i; else col.neto ??= i; }
+        else if (/bruto/.test(n)) { if (/kg|kilo/.test(n)) col.brutoKg ??= i; else col.bruto ??= i; }
+        else if (/^libras?$|^lbs?$/.test(n)) col.neto ??= i;
+        else if (/ubicacion|bodega/.test(n)) col.ubicacion ??= i;
+        else if (/proveedor/.test(n)) col.proveedor ??= i;
+        else if (/marca/.test(n)) col.marca ??= i;
+        else if (/minimo/.test(n)) col.min ??= i;
+        else if (/color/.test(n)) col.color ??= i;
+      });
+    } else { col.codigo = 0; col.desc = 1; hi = -1; }
+    let nuevos = 0, act = 0;
+    const has = (r, k) => col[k] !== undefined && String(r[col[k]]).trim() !== '';
+    for (const r of rows.slice(hi + 1)) {
+      const codigo = String(r[col.codigo] ?? '').trim().toUpperCase(); if (!codigo) continue;
+      const id = docId(codigo); const prev = state.hilos.find(h => h.id === id);
+      const desc = has(r, 'desc') ? String(r[col.desc]).trim().toUpperCase() : (prev ? prev.descripcion : codigo);
+      const h = prev ? { ...prev } : { id, codigo, descripcion: desc, titulo: tituloDe(desc), color: colorDe(desc).nombre, material: /regen/i.test(desc) ? 'Regenerado' : '', marca: '', proveedor: '', ubicacion: 'Bodega', bultos: 0, conos: 0, netoLb: 0, brutoLb: 0, minLb: 0, creado: new Date().toISOString() };
+      h.descripcion = desc;
+      if (has(r, 'titulo')) h.titulo = String(r[col.titulo]).trim(); else if (!h.titulo) h.titulo = tituloDe(desc);
+      if (has(r, 'color')) h.color = String(r[col.color]).trim().toUpperCase();
+      if (has(r, 'bultos')) h.bultos = Math.max(0, Math.round(num(r[col.bultos])));
+      if (has(r, 'conos')) h.conos = Math.max(0, Math.round(num(r[col.conos])));
+      if (has(r, 'neto')) h.netoLb = r2(num(r[col.neto])); else if (has(r, 'netoKg')) h.netoLb = r2(num(r[col.netoKg]) * LB_PER_KG);
+      if (has(r, 'bruto')) h.brutoLb = r2(num(r[col.bruto])); else if (has(r, 'brutoKg')) h.brutoLb = r2(num(r[col.brutoKg]) * LB_PER_KG);
+      if (h.brutoLb < h.netoLb) h.brutoLb = h.netoLb;
+      ['ubicacion', 'proveedor', 'marca'].forEach(k => { if (has(r, k)) h[k] = String(r[col[k]]).trim(); });
+      if (has(r, 'min')) h.minLb = r2(num(r[col.min]));
+      if (h.bultos) h.taraLb = r2((h.brutoLb - h.netoLb) / h.bultos);
+      h.actualizado = new Date().toISOString();
+      const ok = await guardar(() => putHilo(h)); if (!ok) break;
+      prev ? act++ : nuevos++;
+      msg.textContent = `Importando… ${nuevos + act}`;
+    }
+    msg.textContent = `Listo: ${nuevos} nuevos, ${act} actualizados.`;
+    toast(`Importación terminada: ${nuevos} nuevos, ${act} actualizados`);
+  } catch (err) { msg.textContent = 'No pude leer ese archivo. Revisa que sea un Excel (.xlsx).'; }
+  e.target.value = '';
+});
+
+/* ---------- Arranque ---------- */
+const SEED = [
+  ['HR22/2-01', 'BLANCO REGENERADO 22/2'], ['HR22/2-02', 'NEGRO REGENERADO 22/2'], ['HR12/1-02', 'NEGRO REGENERADO 12/1'], ['HR12/1-01', 'BLANCO REGENERADO 12/1'],
+  ['HR12/1-10', 'AZUL MARINO REGENERADO 12/1'], ['HR12/1-12', 'GRIS CLARO REGENERADO 12/1'], ['HR12/1-14', 'OXFORD REGENERADO 12/1'], ['HR10/1-02', 'NEGRO REGENERADO 10/1'],
+  ['HR8/1-02', 'NEGRO REGENERADO 8/1'], ['HR8/1-01', 'BLANCO REGENERADO 8/1'], ['HR8/1-15', 'ROJO REGENERADO 8/1'], ['HR6/1-02', 'NEGRO REGENERADO 6/1'], ['HR6/1-01', 'BLANCO REGENERADO 6/1']
+];
+document.addEventListener('click', async e => {
+  if (!e.target.closest('#btn-seed')) return;
+  e.target.disabled = true;
+  const now = new Date().toISOString();
+  const ok = await guardar(async () => {
+    for (const [codigo, descripcion] of SEED) {
+      await putHilo({ id: docId(codigo), codigo, descripcion, titulo: tituloDe(descripcion), color: colorDe(descripcion).nombre, material: 'Regenerado', marca: '', proveedor: '', ubicacion: 'Bodega',
+        bultos: 0, conos: 0, netoLb: 0, brutoLb: 0, taraLb: 0, minLb: 0, creado: now, actualizado: now });
+    }
+  });
+  if (ok) toast('Se cargaron los 13 títulos');
+});
+
+let unsubs = [];
+function arrancarDatos(db, timer) {
+  state.db = db;
+  unsubs.push(db.collection('hilos').onSnapshot({ includeMetadataChanges: true }, snap => {
+    state.hilos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    state.loaded = true;
+    if (!snap.metadata.fromCache) { state.cloudOk = true; clearTimeout(timer); if ($('#sync').dataset.s !== 'saving') setSync('ok'); }
+    render();
+  }, err => {
+    clearTimeout(timer); state.loaded = true; setSync('error');
+    toast(err && err.code === 'permission-denied' ? 'Esta cuenta no tiene permiso para ver el inventario.' : 'Se perdió la conexión con la nube. Recarga la página.', 'crit'); render();
+  }));
+  unsubs.push(db.collection('movimientos').orderBy('fecha', 'desc').limit(500).onSnapshot(snap => {
+    state.movs = snap.docs.map(d => ({ id: d.id, ...d.data() })); render();
+  }, () => {}));
+}
+
+function init() {
+  show(location.hash.slice(1));
+  render(); setSync('loading');
+  const cfg = window.FIREBASE_CONFIG;
+  if (!window.firebase || !cfg || !cfg.apiKey || /PEGA_AQUI/.test(cfg.apiKey)) {
+    state.local = true; state.loaded = true; setSync('local');
+    const b = $('#banner'); b.hidden = false;
+    b.textContent = 'Falta conectar Firebase: copia la configuración de tu proyecto en el archivo firebase-config.js (ver README). Mientras tanto, los cambios no se guardan.';
+    render(); return;
+  }
+  firebase.initializeApp(cfg);
+  const auth = firebase.auth(), db = firebase.firestore();
+  db.enablePersistence({ synchronizeTabs: true }).catch(() => {});
+  $('#btn-login').addEventListener('click', async () => {
+    $('#login-msg').textContent = '';
+    try { await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
+    catch (e) {
+      if (e && (e.code === 'auth/popup-blocked' || e.code === 'auth/operation-not-supported-in-this-environment')) auth.signInWithRedirect(new firebase.auth.GoogleAuthProvider());
+      else if (!(e && e.code === 'auth/popup-closed-by-user')) $('#login-msg').textContent = 'No se pudo iniciar sesión. Inténtalo otra vez.';
+    }
+  });
+  $('#btn-logout').addEventListener('click', () => auth.signOut());
+  auth.onAuthStateChanged(user => {
+    unsubs.forEach(u => u()); unsubs = [];
+    state.hilos = []; state.movs = []; state.db = null; state.cloudOk = false;
+    document.body.classList.toggle('locked', !user);
+    $('#login').hidden = !!user; $('#who').hidden = !user; $('#btn-logout').hidden = !user;
+    if (!user) { state.loaded = false; setSync('local'); $('#sync-t').textContent = 'Sin sesión'; render(); return; }
+    $('#who').textContent = user.email || '';
+    state.loaded = false; setSync('loading'); render();
+    const timer = setTimeout(() => { if (!state.cloudOk) setSync('slow'); }, 10000);
+    arrancarDatos(db, timer);
+  });
+}
+init();
+})();
+</script>
