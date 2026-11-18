@@ -510,7 +510,7 @@ function render() {
       <td class="sep"><span class="pill ${e}">${ESTADO_TXT[e]}</span></td>
       <td><button class="btn small" type="button" data-edit="${esc(h.id)}">Editar</button></td></tr>`; };
   if (!state.loaded) $('#tb-bodega').innerHTML = `<tr><td colspan="${cols}" class="empty">Cargando inventario…</td></tr>`;
-  else if (!all.length) $('#tb-bodega').innerHTML = `<tr><td colspan="${cols}" class="empty">Todavía no hay hilos. Ve a «Agregar artículos» para registrar el primero, importa tu Excel o <button class="btn small primary" type="button" id="btn-seed">cargar los 13 títulos iniciales</button></td></tr>`;
+  else if (!all.length) $('#tb-bodega').innerHTML = `<tr><td colspan="${cols}" class="empty">Todavía no hay hilos. Ve a «Agregar artículos» para registrar el primero, importa tu Excel o <button class="btn small primary" type="button" id="btn-seed">cargar la existencia inicial (13 títulos)</button></td></tr>`;
   else if (!rows.length) $('#tb-bodega').innerHTML = `<tr><td colspan="${cols}" class="empty">${state.soloExist ? 'Ningún hilo tiene existencia todavía. Quita el filtro «Solo con existencia» para ver todos.' : 'Ningún hilo coincide con la búsqueda.'}</td></tr>`;
   else {
     // agrupado por título (calibre), con el subtotal de cada grupo en su encabezado
@@ -725,19 +725,26 @@ $('#imp-file').addEventListener('change', async e => {
 });
 
 /* ---------- Arranque ---------- */
+// Existencia inicial: código, descripción, bultos (sacos), conos, peso neto lb, peso bruto lb
 const SEED = [
-  ['HR22/2-01', 'BLANCO REGENERADO 22/2'], ['HR22/2-02', 'NEGRO REGENERADO 22/2'], ['HR12/1-02', 'NEGRO REGENERADO 12/1'], ['HR12/1-01', 'BLANCO REGENERADO 12/1'],
-  ['HR12/1-10', 'AZUL MARINO REGENERADO 12/1'], ['HR12/1-12', 'GRIS CLARO REGENERADO 12/1'], ['HR12/1-14', 'OXFORD REGENERADO 12/1'], ['HR10/1-02', 'NEGRO REGENERADO 10/1'],
-  ['HR8/1-02', 'NEGRO REGENERADO 8/1'], ['HR8/1-01', 'BLANCO REGENERADO 8/1'], ['HR8/1-15', 'ROJO REGENERADO 8/1'], ['HR6/1-02', 'NEGRO REGENERADO 6/1'], ['HR6/1-01', 'BLANCO REGENERADO 6/1']
+  ['HR22/2-01', 'BLANCO REGENERADO 22/2', 48, 1, 2592.48, 2666.40], ['HR22/2-02', 'NEGRO REGENERADO 22/2', 258, 0, 13934.58, 14331.90],
+  ['HR12/1-02', 'NEGRO REGENERADO 12/1', 69, 6, 3726.69, 3832.95], ['HR12/1-01', 'BLANCO REGENERADO 12/1', 0, 0, 0, 0],
+  ['HR12/1-10', 'AZUL MARINO REGENERADO 12/1', 114, 0, 6157.14, 6332.70], ['HR12/1-12', 'GRIS CLARO REGENERADO 12/1', 5, 5, 270.005, 277.75],
+  ['HR12/1-14', 'OXFORD REGENERADO 12/1', 100, 0, 5401, 5555], ['HR10/1-02', 'NEGRO REGENERADO 10/1', 1, 0, 54.01, 55.55],
+  ['HR8/1-02', 'NEGRO REGENERADO 8/1', 44, 3, 2916.54, 2999.70], ['HR8/1-01', 'BLANCO REGENERADO 8/1', 54, 7, 2970.55, 3055.25],
+  ['HR8/1-15', 'ROJO REGENERADO 8/1', 17, 0, 918.17, 944.35], ['HR6/1-02', 'NEGRO REGENERADO 6/1', 76, 0, 4104.76, 4221.80],
+  ['HR6/1-01', 'BLANCO REGENERADO 6/1', 151, 0, 8645.61, 8943.55]
 ];
 document.addEventListener('click', async e => {
   if (!e.target.closest('#btn-seed')) return;
   e.target.disabled = true;
   const now = new Date().toISOString();
   const ok = await guardar(async () => {
-    for (const [codigo, descripcion] of SEED) {
-      await putHilo({ id: docId(codigo), codigo, descripcion, titulo: tituloDe(descripcion), color: colorDe(descripcion).nombre, material: 'Regenerado', marca: '', proveedor: '', ubicacion: 'Bodega',
-        bultos: 0, conos: 0, netoLb: 0, brutoLb: 0, taraLb: 0, minLb: 0, creado: now, actualizado: now });
+    for (const [codigo, descripcion, bultos, conos, netoLb, brutoLb] of SEED) {
+      const id = docId(codigo);
+      await putHilo({ id, codigo, descripcion, titulo: tituloDe(descripcion), color: colorDe(descripcion).nombre, material: 'Regenerado', marca: '', proveedor: '', ubicacion: 'Bodega',
+        bultos, conos, netoLb, brutoLb, taraLb: bultos ? r2((brutoLb - netoLb) / bultos) : 0, minLb: 0, creado: now, actualizado: now });
+      if (netoLb || bultos || conos) await addMov({ fecha: now, tipo: 'entrada', hiloId: id, codigo, descripcion, bultos, conos, netoLb, quedaLb: netoLb, nota: 'Existencia inicial' });
     }
   });
   if (ok) toast('Se cargaron los 13 títulos');
