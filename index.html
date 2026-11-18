@@ -203,7 +203,7 @@ dialog form{padding:18px;display:flex;flex-direction:column;gap:16px}
       <input id="cmd" type="text" autocomplete="off" spellcheck="false" placeholder="8/1 rojo 100 libras">
       <button class="btn primary" id="cmd-go" type="button" disabled>Aplicar</button>
     </div>
-    <p class="hint">Escribe el título, el color y la cantidad. Por defecto se <b>descuenta</b>. Para sumar, empieza con <span class="mono">entrada</span>: <span class="mono">entrada 12/1 negro 2 bultos 24 conos 300 lb</span>. Acepta <span class="mono">libras</span>, <span class="mono">kilos</span>, <span class="mono">conos</span> y <span class="mono">bultos</span>. Si solo pones bultos, cada uno cuenta como 54.01 lb netas.</p>
+    <p class="hint">Escribe el título, el color y la cantidad. Por defecto se <b>descuenta</b>. Para sumar, empieza con <span class="mono">entrada</span>: <span class="mono">entrada 12/1 negro 2 bultos 24 conos 300 lb</span>. Acepta <span class="mono">libras</span>, <span class="mono">kilos</span>, <span class="mono">conos</span> y <span class="mono">bultos</span>. Si no pones libras, cada bulto cuenta 54.01 lb y cada cono 6.75 lb.</p>
     <div class="qout" id="cmd-out"></div>
   </section>
 
@@ -258,7 +258,7 @@ dialog form{padding:18px;display:flex;flex-direction:column;gap:16px}
           <div class="field"><label for="a-proveedor">Proveedor</label><input id="a-proveedor"></div>
           <div class="field"><label for="a-ubicacion">Ubicación</label><input id="a-ubicacion" value="Bodega"></div>
           <div class="fieldset-title">Existencia inicial</div>
-          <div class="field"><label for="a-bultos">Bultos</label><input id="a-bultos" type="number" min="0" step="1" inputmode="numeric" placeholder="0"><span class="help">54.01 lb netas por bulto: llena los pesos sola.</span></div>
+          <div class="field"><label for="a-bultos">Bultos</label><input id="a-bultos" type="number" min="0" step="1" inputmode="numeric" placeholder="0"><span class="help">54.01 lb por bulto y 6.75 por cono: los pesos se llenan solos.</span></div>
           <div class="field"><label for="a-conos">Conos</label><input id="a-conos" type="number" min="0" step="1" inputmode="numeric" placeholder="0"></div>
           <div class="field"><label for="a-neto">Peso neto</label><input id="a-neto" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0"></div>
           <div class="field"><label for="a-bruto">Peso bruto</label><input id="a-bruto" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0"></div>
@@ -395,12 +395,12 @@ async function addMov(m) {
 }
 
 /* ---------- Movimientos ---------- */
-const PESO_BULTO = 54.01, TARA_BULTO = 1.54;
+const PESO_BULTO = 54.01, TARA_BULTO = 1.54, PESO_CONO = 6.75;
 function pesoBulto(h) { return +h.pesoBultoLb > 0 ? +h.pesoBultoLb : PESO_BULTO; }
 function tara(h) { return (h.bultos || 0) > 0 ? Math.max(0, ((h.brutoLb || 0) - (h.netoLb || 0)) / h.bultos) : (h.taraLb || 0); }
 function calcMov(h, tipo, lb, bultos, conos) {
   const t = tara(h), s = tipo === 'entrada' ? 1 : -1;
-  const dB = Math.round(bultos || 0), dC = Math.round(conos || 0), auto = !lb && dB > 0, dN = auto ? r2(dB * pesoBulto(h)) : (lb || 0), dBr = dN + (t || TARA_BULTO) * dB;
+  const dB = Math.round(bultos || 0), dC = Math.round(conos || 0), auto = !lb && (dB > 0 || dC > 0), dN = auto ? r2(dB * pesoBulto(h) + dC * PESO_CONO) : (lb || 0), dBr = dN + (t || TARA_BULTO) * dB;
   const n = { bultos: (h.bultos || 0) + s * dB, conos: (h.conos || 0) + s * dC, netoLb: r2((h.netoLb || 0) + s * dN), brutoLb: r2((h.brutoLb || 0) + s * dBr) };
   if (n.netoLb < 0 && n.netoLb > -0.01) n.netoLb = 0;
   if (n.brutoLb < n.netoLb) n.brutoLb = n.netoLb;
@@ -467,7 +467,7 @@ function renderCmd() {
   }
   const c = calcMov(h, p.tipo, p.lb, p.bultos, p.conos);
   const verbo = p.tipo === 'entrada' ? 'Sumar' : 'Descontar';
-  const cant = [p.bultos ? `${p.bultos} bulto${p.bultos == 1 ? '' : 's'}` : '', p.conos ? `${p.conos} cono${p.conos == 1 ? '' : 's'}` : '', (c.auto || p.lb) ? `${f2(c.dN)} lb (${f2(kg(c.dN))} kg)${c.auto ? ' a ' + f2(pesoBulto(h)) + ' lb por bulto' : ''}` : ''].filter(Boolean).join(', ');
+  const cant = [p.bultos ? `${p.bultos} bulto${p.bultos == 1 ? '' : 's'}` : '', p.conos ? `${p.conos} cono${p.conos == 1 ? '' : 's'}` : '', (c.auto || p.lb) ? `${f2(c.dN)} lb (${f2(kg(c.dN))} kg)${c.auto ? ' (' + [c.dB ? f2(pesoBulto(h)) + ' lb por bulto' : '', c.dC ? f2(PESO_CONO) + ' lb por cono' : ''].filter(Boolean).join(', ') + ')' : ''}` : ''].filter(Boolean).join(', ');
   out.innerHTML = `<div class="qcard ${c.error ? 'err' : 'ready'}">
     <div class="what">${swatch(h)}<span>${verbo} <b>${esc(cant)}</b> de <b>${esc(h.codigo)}</b> ${esc(h.descripcion)}</span></div>
     ${c.error ? `<span>${esc(c.error)}</span>` : `<div class="delta"><span>Neto: <s>${f2(h.netoLb)}</s> → <b>${f2(c.n.netoLb)} lb</b> · ${f2(kg(c.n.netoLb))} kg</span><span>Bultos: <s>${h.bultos || 0}</s> → <b>${c.n.bultos}</b> · Conos: <s>${h.conos || 0}</s> → <b>${c.n.conos}</b> · Bruto ${f2(c.n.brutoLb)} lb</span></div>`}
@@ -576,11 +576,12 @@ $('#a-desc').addEventListener('input', e => {
   const t = tituloDe(e.target.value); if (t) $('#a-titulo').value = t;
   const c = colorDe(e.target.value).nombre; if (c) $('#a-color').value = c;
 });
-$('#a-bultos').addEventListener('input', e => {
-  const b = num(e.target.value), f = $('#a-unidad').value === 'kg' ? KG_PER_LB : 1;
-  if (!$('#a-neto').dataset.manual) $('#a-neto').value = b ? r2(b * PESO_BULTO * f) : '';
-  if (!$('#a-bruto').dataset.manual) $('#a-bruto').value = b ? r2(b * (PESO_BULTO + TARA_BULTO) * f) : '';
-});
+function autoPeso() {
+  const b = num($('#a-bultos').value), co = num($('#a-conos').value), f = $('#a-unidad').value === 'kg' ? KG_PER_LB : 1;
+  if (!$('#a-neto').dataset.manual) $('#a-neto').value = (b || co) ? r2((b * PESO_BULTO + co * PESO_CONO) * f) : '';
+  if (!$('#a-bruto').dataset.manual) $('#a-bruto').value = (b || co) ? r2((b * (PESO_BULTO + TARA_BULTO) + co * PESO_CONO) * f) : '';
+}
+['a-bultos', 'a-conos', 'a-unidad'].forEach(i => $('#' + i).addEventListener('input', autoPeso));
 ['a-neto', 'a-bruto'].forEach(i => $('#' + i).addEventListener('input', e => { e.target.dataset.manual = e.target.value ? '1' : ''; }));
 $('#f-add').addEventListener('submit', async e => {
   e.preventDefault();
